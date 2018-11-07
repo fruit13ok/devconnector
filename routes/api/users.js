@@ -8,6 +8,10 @@ const passport = require('passport');
 
 router.get('/test', (req, res) => res.json({msg: 'users route works'}));
 
+// Load Input Validation
+const validateRegisterInput = require('../../validation/register');
+const validateLoginInput = require('../../validation/login');
+
 // Load User model
 const User = require('../../models/User');
 
@@ -15,10 +19,23 @@ const User = require('../../models/User');
 
 // route register new user
 router.post('/register', (req, res) => {
+    // if isValid is false, means has errors
+    // then errors will has some key/value in it
+    // return status 400 and errors
+    // es6 destructuring
+    // const { errors, isValid } = validateRegisterInput(req.body);
+    const errors = validateRegisterInput(req.body).errors;
+    const isValid = validateRegisterInput(req.body).isValid;
+    // Check Validation
+    if (!isValid) {
+        return res.status(400).json(errors);
+    }
+
     User.findOne({ email: req.body.email })
     .then(user => {
         if (user) {
-            return res.status(400).json({email: 'Email already exists'});
+            errors.email = 'Email already exists';
+            return res.status(400).json(errors);
         } else {
             const avatar = gravatar.url(req.body.email, {
                 s: '200', // Size
@@ -48,6 +65,13 @@ router.post('/register', (req, res) => {
 // login route
 // take in form data, return jwt
 router.post('/login', (req, res) => {
+    const { errors, isValid } = validateLoginInput(req.body);
+
+    // Check Validation
+    if (!isValid) {
+        return res.status(400).json(errors);
+    }
+
     const email = req.body.email;
     const password = req.body.password;
 
@@ -56,7 +80,8 @@ router.post('/login', (req, res) => {
     .then(user => {
         // Check if DB return back user
         if (!user) {
-            return res.status(404).json({email: 'User not found'});
+            errors.email = 'User not found';
+            return res.status(404).json(errors);
         }
         // Check Password, compare form plain text to database user hash password
         bcrypt.compare(password, user.password)
@@ -79,7 +104,8 @@ router.post('/login', (req, res) => {
                 }
             );
             } else {
-              return res.status(400).json({password: 'Password incorrect'});
+                errors.password = 'Password incorrect';
+              return res.status(400).json(errors);
             }
         });
     })
