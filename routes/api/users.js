@@ -6,6 +6,7 @@ const jwt = require('jsonwebtoken');
 const keys = require('../../config/keys');
 const passport = require('passport');
 
+// api/users/test
 router.get('/test', (req, res) => res.json({msg: 'users route works'}));
 
 // Load Input Validation
@@ -18,6 +19,7 @@ const User = require('../../models/User');
 // https://github.com/emerleite/node-gravatar
 
 // route register new user
+// api/users/register
 router.post('/register', (req, res) => {
     // if isValid is false, means has errors
     // then errors will has some key/value in it
@@ -63,6 +65,7 @@ router.post('/register', (req, res) => {
 });
 
 // login route
+// api/users/login
 // take in form data, return jwt
 router.post('/login', (req, res) => {
     const { errors, isValid } = validateLoginInput(req.body);
@@ -112,6 +115,7 @@ router.post('/login', (req, res) => {
 });
 
 // current user route
+// api/users/current
 router.get('/current', passport.authenticate('jwt', { session: false }), (req, res) => {
         // res.json({msg: 'Success'});
         res.json({
